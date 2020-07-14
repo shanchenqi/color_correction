@@ -33,7 +33,7 @@ double to_deg(double rad);
 
 double deltacE_cmc(const LAB& lab1, const LAB& lab2, double kL , double kC );
 
-double deltacE_ciede94(const LAB& lab1, const LAB& lab2, int kH, int kC, int kL, double k1, double);
+double deltacE_ciede94(const LAB& lab1, const LAB& lab2, double kH, double kC, double kL, double k1, double);
 
 double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL , double kC , double kH );
 

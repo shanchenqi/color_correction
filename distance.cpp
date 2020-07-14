@@ -56,7 +56,7 @@ double deltacE_cmc(const LAB& lab1, const LAB& lab2, double kL = 1, double kC = 
 
 	return sqrtl(powl(dL / (kL * sL), 2.0) + powl(dC / (kC * sC), 2.0) + powl(dH2 / sH, 2.0));
 }
-double deltacE_ciede94(const LAB& lab1, const LAB& lab2, int kH = 1, int kC = 1, int kL = 1, double k1 = 0.045, double k2 = 0.015) {
+double deltacE_ciede94(const LAB& lab1, const LAB& lab2, double kH = 1.0, double kC = 1.0, double kL = 1.0, double k1 = 0.045, double k2 = 0.015) {
 	double dl = lab1.l - lab2.l;
 	double c1 = sqrtl(powl(lab1.a, 2) + powl(lab1.b, 2));
 	double c2 = sqrtl(powl(lab2.a, 2) + powl(lab2.b, 2));
@@ -67,7 +67,7 @@ double deltacE_ciede94(const LAB& lab1, const LAB& lab2, int kH = 1, int kC = 1,
 	double sc = 1.0 + k1 * c1;
 	double sh = 1.0 + k2 * c1;
 	int sl = 1;
-	double res = powl(dl / (double)(kL * sl), 2) + powl(dc / (kC * sc), 2) + dh / powl(kH * sh, 2);
+	double res = powl(dl /(kL * sl), 2) + powl(dc / (kC * sc), 2) + dh / powl(kH * sh, 2);
 
 	return res > 0 ? sqrtl(res) : 0;
 
@@ -102,7 +102,7 @@ double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL = 1.0, doub
 	}
 	double H;
 
-	if (labs(h1 - h2) <= to_rad(180)) {
+	if (labs(h1 - h2) <= to_rad(180.0)) {
 		H = (h1 + h2) / 2.0;
 	}
 	else if (labs(h1 - h2) > to_rad(180) && h1 + h2 < to_rad(360)) {
@@ -153,7 +153,7 @@ Mat distance_s(Mat Lab1, Mat Lab2, string distance) {
 			double l2 = Lab2.at<Vec3d>(i, j)[0];
 			double a2 = Lab2.at<Vec3d>(i, j)[1];
 			double b2 = Lab2.at<Vec3d>(i, j)[2];
-			double L, a, b;
+			
 			LAB lab1 = { l1,a1,b1 };
 			LAB lab2 = { l2,a2,b2 };
 			if (distance == "distance_de94") {
