@@ -18,17 +18,22 @@ namespace {
 }
 
 Mat saturate(Mat src, double low, double up) {
+ 
     Mat src_saturation(src.size(), CV_64FC1);
+  
     for (int i = 0; i < src.rows; i++) {
+        
         for (int j = 0; j < src.cols; j++) {
-            bool saturation_ij = true;
+          
+          //  bool saturation_ij = true;
+            double saturation_ij = 1;
             for (int m = 0; m < 3; m++) {
                 if (not((src.at<Vec3d>(i, j)[m] < up) && (src.at<Vec3d>(i, j)[m] > low))) {
-                    saturation_ij = false;
+                    saturation_ij = 0;
                     break;
                 }
             }
-            src_saturation.at<double>(i, j) = (double)saturation_ij;
+            src_saturation.at<double>(i, j) = saturation_ij;
         }
     }
     return src_saturation;
@@ -44,6 +49,7 @@ Mat xyz2lab(Mat xyz, IO io) {
     vector<double> xyz_ref_white_io = illuminants[io];
     Mat lab(xyz.size(), xyz.type());
     Mat channel(cv::Size(xyz.rows, xyz.cols), CV_32FC3);
+   
     for (int i = 0; i < xyz.rows; i++) {
         for (int j = 0; j < xyz.cols; j++) {       
             f_xyz2lab(xyz.at<Vec3d>(i, j)[0], xyz.at<Vec3d>(i, j)[1], xyz.at<Vec3d>(i, j)[2],//x,y,z
@@ -149,7 +155,7 @@ Mat lab2lab(Mat lab, IO sio, IO dio) {
     return xyz2lab(xyz2xyz(lab2xyz(lab, sio), sio, dio), dio);
 }
 
-double gamma_correction_f(double f, double gamma) {
+double gamma_correction_f(double f, double gamma) {//todo 3行三元表达式
     double k = f >= 0 ? pow(f, gamma) : -pow((-f), gamma);
     return k;
 }

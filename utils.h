@@ -3,15 +3,16 @@
 #include <vector>
 #include <map>
 #include <string>
-//#include "IO.h"
-#include "colorspace.h"
+#include "IO.h"
+#include "distance.h"
+//#include "colorspace.h"
 
 
 using namespace cv;
 using namespace std;
 
-void  f_xyz2lab(double  X, double  Y, double Z,
-	double& L, double& a, double& b, double Xn, double Yn, double Zn);
+//LAB  f_xyz2lab(double  X, double  Y, double Z,LAB lab, double Xn, double Yn, double Zn);
+void f_xyz2lab(double  X, double  Y, double Z,double& L, double& a, double& b, double Xn, double Yn, double Zn);
 double gamma_correction_f(double  f, double gamma);
 
 Mat  saturate(Mat src, double low, double up);
