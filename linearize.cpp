@@ -31,7 +31,7 @@ Mat Linear::mask_copyto_gray(Mat src, Mat mask) {
 
 Linear_gamma::Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
-    gamma = gamma_;
+    this->gamma = gamma_;
 }
 
 Mat Linear_gamma::linearize(Mat inp) {
@@ -71,30 +71,16 @@ void Linear_color_polyfit::calc(void)
 
 Mat Linear_color_polyfit::linearize(Mat inp)
 {
-    Mat channels[3];
-    split(inp, channels);
-    Mat r = channels[0];
-    Mat g = channels[1];
-    Mat b = channels[2];
-    Mat prr = poly1d(r, pr, deg);
-    Mat pgg = poly1d(g, pg, deg);
-    Mat pbb = poly1d(b, pb, deg);
-    Mat res(inp.size(),inp.type());
-    for (int row = 0; row < prr.rows; row++) {
-        for (int col = 0; col < prr.cols; col++) {
-            res.at<Vec3d>(row, col)[0] = prr.at<double>(row, col);
-        }
-    }
-    for (int row = 0; row < pgg.rows; row++) {
-        for (int col = 0; col < pgg.cols; col++) {
-            res.at<Vec3d>(row, col)[1] = pgg.at<double>(row, col);
-        }
-    }
-    for (int row = 0; row < pbb.rows; row++) {
-        for (int col = 0; col < pbb.cols; col++) {
-            res.at<Vec3d>(row, col)[2] = pbb.at<double>(row, col);
-        }
-    }
+    Mat inpChannels[3];
+
+    split(inp, inpChannels);
+    vector<Mat> channel;
+    Mat res;
+
+    channel.push_back(poly1d(inpChannels[0], pr, deg));
+    channel.push_back(poly1d(inpChannels[1], pg, deg));
+    channel.push_back(poly1d(inpChannels[2], pb, deg));
+    merge(channel, res);
     return res;
 }
 
