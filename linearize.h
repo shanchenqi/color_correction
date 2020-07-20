@@ -20,7 +20,6 @@ public:
     Mat _polyfit(Mat src, Mat dst, int deg);
     Mat _lin(Mat p, Mat x, int deg);
     Mat mask_copyto(Mat src, Mat mask);
-    Mat mask_copyto_gray(Mat src, Mat mask);
 
 };
 

@@ -7,6 +7,7 @@ Mat Linear::linearize(Mat inp)
 Mat Linear::mask_copyto(Mat src, Mat mask) {
     Mat src_(countNonZero(mask), 1, src.type());
     int countone = 0;
+    
     for (int i = 0; i < mask.rows; i++) {
         if (mask.at<double>(i, 0)) {
             for (int c = 0; c < src.channels(); c++) {
@@ -17,17 +18,7 @@ Mat Linear::mask_copyto(Mat src, Mat mask) {
     }
     return src_;
 }
-Mat Linear::mask_copyto_gray(Mat src, Mat mask) {
-    Mat src_(countNonZero(mask), 1, src.type());
-    int countone = 0;
-    for (int i = 0; i < mask.rows; i++) {
-        if (mask.at<char>(i, 0)) {
-            src_.at<double>(countone, 0) = src.at<double>(i, 0);
-            countone++;
-        };
-    }
-    return src_;
-}
+
 
 Linear_gamma::Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
@@ -38,6 +29,7 @@ Mat Linear_gamma::linearize(Mat inp) {
     return gamma_correction(inp, gamma);
 }
 
+
 Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_(countNonZero(mask), 1 ,src.type());
@@ -46,6 +38,7 @@ Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorC
   
     this->src = mask_copyto(src, mask);
     this->dst = mask_copyto(cc.rgbl, mask);
+ 
     calc();
 }
 
@@ -53,7 +46,8 @@ Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorC
 void Linear_color_polyfit::calc(void)
 {
     Mat sChannels[3];
-    Mat dChannels[3];  
+    Mat dChannels[3];
+    
     split(this->src, sChannels);
     split(this->dst, dChannels);
     Mat rs = sChannels[0];
@@ -62,10 +56,14 @@ void Linear_color_polyfit::calc(void)
     Mat rd = dChannels[0];
     Mat gd = dChannels[1];
     Mat bd = dChannels[2];
+    cout << "rs"<<rs << endl;
     
+
     pr = polyfit(rs, rd, deg);
     pg = polyfit(gs, gd, deg);
     pb = polyfit(bs, bd, deg);
+
+
 }
 
 
@@ -82,7 +80,9 @@ Mat Linear_color_polyfit::linearize(Mat inp)
     channel.push_back(poly1d(inpChannels[2], pb, deg));
     merge(channel, res);
     return res;
+ 
 }
+
 
 Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
@@ -90,25 +90,31 @@ Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, 
     Mat dst_(countNonZero(mask), 1, cc.rgbl.type());
     this->deg = deg;
     this->src = mask_copyto(src, mask);
-    this->dst = mask_copyto(cc.rgbl, mask);
+    this->dst = mask_copyto(cc.rgbl, mask);  
+    cout <<"dst"<< this->dst << endl;
     calc();
 }
+
 
 void Linear_color_logpolyfit::calc(void)
 {
     Mat sChannels[3];
     Mat dChannels[3];
     split(src, sChannels);
-    split(dst, dChannels);   
+    split(dst, dChannels);
+    
     Mat rs = sChannels[0];
     Mat gs = sChannels[1];
     Mat bs = sChannels[2];
     Mat rd = dChannels[0];
     Mat gd = dChannels[1];
     Mat bd = dChannels[2];
+    cout << rs << endl;
+    cout << rd << endl;
     pr = _polyfit(rs, rd, deg);
     pg = _polyfit(gs, gd, deg);
     pb = _polyfit(bs, bd, deg);
+    cout << "src" << pr << endl;
 }
 
 
@@ -135,10 +141,10 @@ Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorChe
     Mat src_(countNonZero(mask), 1, src.type());
     Mat dst_(countNonZero(mask), 1, cc.grayl.type());
     this->deg = deg;
+
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
     this->dst = mask_copyto(cc.grayl, mask);
-
     calc();
 }
 
@@ -171,7 +177,6 @@ Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, int deg, Mat src, Co
 
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
-    
     this->dst = mask_copyto(cc.grayl, mask);
     calc();
 }
@@ -201,9 +206,10 @@ Mat Linear_gray_logpolyfit::linearize(Mat inp)
 Mat Linear::_polyfit(Mat src, Mat dst, int deg) {
     
     Mat mask_ = (src > 0) & (dst > 0);
+    mask_.convertTo(mask_, CV_64F);
     Mat src_, dst_;
-    src_ = mask_copyto_gray(src, mask_);
-    dst_ = mask_copyto_gray(dst, mask_);
+    src_ = mask_copyto(src, mask_);
+    dst_ = mask_copyto(dst, mask_);
     Mat s, d;
     log(src_, s);
     log(dst_, d);
@@ -240,6 +246,7 @@ Mat Linear::polyfit(Mat src_x, Mat src_y, int order) {
     }
     Mat w;
     cv::solve(A, srcY, w, DECOMP_SVD);
+    cout << "polifit" <<w<< endl;
     return w;
 }
 
@@ -251,11 +258,15 @@ Mat Linear::poly1d(Mat src, Mat w, int deg) {
                 for (int d = 0; d <=deg; d++) {
                     res += pow(src.at<double>(i, j), d) * w.at<double>( d,0);
                     res_polyfit.at<double>(i, j) = res;
-            }        
+            }
+           
         }
-    }  
+    }
+    
     return res_polyfit;
 }
+
+
 
 Linear* get_linear(string linear) {
     Linear* p = new Linear;
