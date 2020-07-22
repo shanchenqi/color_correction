@@ -95,12 +95,19 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
 }
 
 Mat CCM_3x3::initial_white_balance(Mat src_rgbl, Mat dst_rgbl) {
-    Scalar rs = sum(src_rgbl.colRange(0, 1));
-    Scalar gs = sum(src_rgbl.colRange(1, 2));
-    Scalar bs = sum(src_rgbl.colRange(2, 3));
-    Scalar rd = sum(dst_rgbl.colRange(0, 1));
-    Scalar gd = sum(dst_rgbl.rowRange(1, 2));
-    Scalar bd = sum(dst_rgbl.rowRange(2, 3));
+    Mat sChannels[3];
+    split(src_rgbl, sChannels);
+
+    Mat dChannels[3];
+    split(dst_rgbl, dChannels);
+
+    Scalar rs = sum(sChannels[0]);
+    Scalar gs = sum(sChannels[1]);
+    Scalar bs = sum(sChannels[2]);
+    Scalar rd = sum(dChannels[0]);
+    Scalar gd = sum(dChannels[1]);
+    Scalar bd = sum(dChannels[2]);
+   
     Mat initial_white_balance_ = (Mat_<double>(3, 3) << rd[0] / rs[0], 0, 0, 0, gd[0] / gs[0], 0, 0, 0, bd[0] / bs[0]);
     return initial_white_balance_;
 }
