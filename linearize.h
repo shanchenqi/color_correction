@@ -19,7 +19,7 @@ public:
     Mat poly1d(Mat src, Mat w, int deg);
     Mat _polyfit(Mat src, Mat dst, int deg);
     Mat _lin(Mat p, Mat x, int deg);
-    Mat mask_copyto(Mat src, Mat mask);
+  //  Mat mask_copyto(Mat src, Mat mask);
 
 };
 
@@ -107,6 +107,6 @@ public:
 };
 
 
-
-Linear* get_linear(string linear);
+Linear* get_linear(string linear, float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+Mat mask_copyto(Mat src, Mat mask);
 #endif

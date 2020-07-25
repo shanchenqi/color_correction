@@ -18,14 +18,9 @@ namespace {
 }
 
 Mat saturate(Mat src, double low, double up) {
- 
     Mat src_saturation(src.size(), CV_64FC1);
-  
     for (int i = 0; i < src.rows; i++) {
-        
         for (int j = 0; j < src.cols; j++) {
-          
-          //  bool saturation_ij = true;
             double saturation_ij = 1;
             for (int m = 0; m < 3; m++) {
                 if (not((src.at<Vec3d>(i, j)[m] < up) && (src.at<Vec3d>(i, j)[m] > low))) {
@@ -48,7 +43,6 @@ Mat xyz2grayl(Mat xyz) {
 Mat xyz2lab(Mat xyz, IO io) { 
     vector<double> xyz_ref_white_io = illuminants[io];
     Mat lab(xyz.size(), xyz.type());
-    Mat channel(cv::Size(xyz.rows, xyz.cols), CV_32FC3);
    
     for (int i = 0; i < xyz.rows; i++) {
         for (int j = 0; j < xyz.cols; j++) {       
@@ -96,12 +90,10 @@ void f_lab2xyz(double l, double a, double b, double& x, double& y, double& z, do
 }
 
 Mat lab2xyz(Mat lab, IO io) {
-
     vector<double> xyz_ref_white_io = illuminants[io];
     Mat xyz(lab.size(), lab.type());
     for (int i = 0; i < lab.rows; i++) {
         for (int j = 0; j < lab.cols; j++) {
-
             f_lab2xyz(lab.at<Vec3d>(i, j)[0], lab.at<Vec3d>(i, j)[1], lab.at<Vec3d>(i, j)[2],// l, a, b,
                      xyz.at<Vec3d>(i, j)[0], xyz.at<Vec3d>(i, j)[1], xyz.at<Vec3d>(i, j)[2],//x, y, z, 
                       xyz_ref_white_io[0], xyz_ref_white_io[1], xyz_ref_white_io[2]);// Xn, Yn, Zn);
@@ -112,7 +104,8 @@ Mat lab2xyz(Mat lab, IO io) {
 
 Mat rgb2gray(Mat rgb) {
     Mat togray = togray_Mat;
-    Mat gray(rgb.rows, rgb.cols, CV_64FC1);
+    Mat gray(rgb.size(), CV_64FC1);
+
     for (int i = 0; i < rgb.rows; i++) {
         for (int j = 0; j < rgb.cols; j++) {
             double res1 = rgb.at<Vec3d>(i, j)[0] * togray.at<double>(0, 0);
@@ -125,25 +118,26 @@ Mat rgb2gray(Mat rgb) {
 }
 
 Mat xyz2xyz(Mat xyz, IO sio, IO dio) {
-
     if (sio.m_illuminant == dio.m_illuminant && sio.m_observer == dio.m_observer) {
         return xyz;
     }
     else {
         Mat cam(IO, IO, string);
+
         Mat cam_M = cam(sio, dio, "Bradford");
-        Mat cam_res;
-        cam_res.create(xyz.size(), xyz.type());
-        for (int i = 0; i < xyz.rows; i++) {
-            for (int j = 0; j < xyz.cols; j++) {
-                for (int m = 0; m < 3; m++) {//矩阵乘法
-                    double res1 = xyz.at<Vec3d>(i, j)[0] * cam_M.at<double>(m, 0);
-                    double res2 = xyz.at<Vec3d>(i, j)[1] * cam_M.at<double>(m, 1);
-                    double res3 = xyz.at<Vec3d>(i, j)[2] * cam_M.at<double>(m, 2);
-                    cam_res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;
-                }
-            }
-        }
+
+        Mat cam_res(xyz.size(), xyz.type());
+        cam_res = mult(xyz, cam_M);
+        //for (int i = 0; i < xyz.rows; i++) {
+        //    for (int j = 0; j < xyz.cols; j++) {
+        //        for (int m = 0; m < 3; m++) {//矩阵乘法
+        //            double res1 = xyz.at<Vec3d>(i, j)[0] * cam_M.at<double>(m, 0);
+        //            double res2 = xyz.at<Vec3d>(i, j)[1] * cam_M.at<double>(m, 1);
+        //            double res3 = xyz.at<Vec3d>(i, j)[2] * cam_M.at<double>(m, 2);
+        //            cam_res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;
+        //        }
+        //    }
+        //}
         return cam_res;
     }
 }
@@ -155,12 +149,12 @@ Mat lab2lab(Mat lab, IO sio, IO dio) {
     return xyz2lab(xyz2xyz(lab2xyz(lab, sio), sio, dio), dio);
 }
 
-double gamma_correction_f(double f, double gamma) {//todo 3行三元表达式
+double gamma_correction_f(double f, double gamma) {
     double k = f >= 0 ? pow(f, gamma) : -pow((-f), gamma);
     return k;
 }
 
-Mat gamma_correction(cv::Mat& src, float K) {
+Mat gamma_correction(cv::Mat& src, double K) {
     Mat dst(src.size(),src.type());
     for (int row = 0; row < src.rows; row++) {
         for (int col = 0; col < src.cols; col++) {
@@ -168,4 +162,53 @@ Mat gamma_correction(cv::Mat& src, float K) {
         }
     }
     return dst;
+}
+
+
+
+Mat mult(Mat xyz,Mat ccm){
+    //cout<<ccm<<endl;
+    int c = xyz.channels();
+
+    Mat res(xyz.size(),CV_64FC3);
+    for (int i = 0; i < xyz.rows; i++) {
+        for (int j = 0; j < xyz.cols; j++) {
+            for (int m = 0; m < c; m++) {//矩阵乘法todo函数
+                
+                res.at<Vec3d>(i, j)[m] = 0;
+                for (int n = 0; n < c; n++) {
+                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec3d>(i, j)[n] * ccm.at<double>(n, m);
+                        /*double res1 = xyz.at<Vec3d>(i, j)[0] * ccm.at<double>(0, m);
+                        double res2 = xyz.at<Vec3d>(i, j)[1] * ccm.at<double>(1, m);
+                        double res3 = xyz.at<Vec3d>(i, j)[2] * ccm.at<double>(2, m);
+                        res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;*/
+                }
+            
+            }
+        }
+    }
+    return res;
+}
+Mat mult4D(Mat xyz, Mat ccm) {
+    //cout<<ccm<<endl;
+    //int c = xyz.channels();
+
+    Mat res(xyz.size(), CV_64FC3);
+    for (int i = 0; i < xyz.rows; i++) {
+        for (int j = 0; j < xyz.cols; j++) {
+            for (int m = 0; m < res.channels(); m++) {//矩阵乘法todo函数
+
+                res.at<Vec3d>(i, j)[m] = 0;
+                for (int n = 0; n < xyz.channels(); n++) {
+                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec4d>(i, j)[n] * ccm.at<double>(n, m);
+                    /*double res1 = xyz.at<Vec3d>(i, j)[0] * ccm.at<double>(0, m);
+                    double res2 = xyz.at<Vec3d>(i, j)[1] * ccm.at<double>(1, m);
+                    double res3 = xyz.at<Vec3d>(i, j)[2] * ccm.at<double>(2, m);
+                    res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;*/
+                }
+
+            }
+        }
+    }
+    return res;
 }

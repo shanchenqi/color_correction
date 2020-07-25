@@ -106,65 +106,78 @@ int main() {
         Vec3d(95.35, 121.51, 66.48),
         Vec3d(45.4, 59.18, 32.),
         Vec3d(17.68, 23.99, 12.22));
-    /*
-    ColorChecker colorcheckertest = colorchecker_Macbeth;
-    string colorspace = "RGB_Base";
-    ColorCheckerMetric test(colorcheckertest, colorspace, *test_sio);
-    float gamma = 2.2;
+    
+   /* ColorChecker colorcheckertest = colorchecker_Macbeth_D65_2;
+    string colorspace = "sRGB";
+    ColorCheckerMetric test(colorcheckertest, colorspace, D65_2);
+    cout <<"test.rgbl"<< test.rgbl << endl;*/
+   /* float gamma = 2.2;
     int deg = 3;
-    Mat src = ColorChecker2005_LAB_D65_2/100;
-    ColorCheckerMetric cc = test;
-   
-    Linear_gamma test_linearize(gamma, deg, test_src/255,  cc, saturated_threshold);
-   // cout <<"res" <<test_linearize.linearize(src1/255) << endl;
-    string dst_colorspace= "RGB_Base";
-    Mat src_ = src1 / 255;
-    string dst_illuminant = "D65";
-    int dst_observer = 2;
-    Mat dst_whites = test.white_mask;
-    string linear_ = "Linear_gamma";
-    string distance_ = "distance_de00";
-    string  dist_illuminant = "D65";
-    int dist_observer = 10;
-    Mat weights_list ;
-    double weights_coeff =0;
-    bool weights_color=false;
-    string initial_method="least_square";
-    double xtol_ =1e-4;
-    double ftol_ =1e-4;
-    Mat dst;
-    string colorchecker = " ColorChecker2005_LAB_D65_2";
-    */
-   // CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold,/
-   // string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_)
-    vector<double> saturated_threshold(2);
+    Mat src = ColorChecker2005_LAB_D65_2/100;*/
+    //Mat step = (Mat_<double>(3, 3) << 2, 3, 4, 1, -0.1, 3, 0.1, 0.1, 0.1);
+    //cout << step << endl;
+   //cout<<"mult"<< mult(test_src,step);
+   // ColorCheckerMetric cc = test;
+   //
+   // Linear_gamma test_linearize(gamma, deg, test_src/255,  cc, saturated_threshold);
+   //// cout <<"res" <<test_linearize.linearize(src1/255) << endl;
+   // string dst_colorspace= "RGB_Base";
+   // Mat src_ = src1 / 255;
+   // string dst_illuminant = "D65";
+   // int dst_observer = 2;
+   // Mat dst_whites = test.white_mask;
+   // string linear_ = "Linear_gamma";
+   // string distance_ = "distance_de00";
+   // string  dist_illuminant = "D65";
+   // int dist_observer = 10;
+   // Mat weights_list ;
+   // double weights_coeff =0;
+   // bool weights_color=false;
+   // string initial_method="least_square";
+   // double xtol_ =1e-4;
+   // double ftol_ =1e-4;
+   // Mat dst;
+   // string colorchecker = " ColorChecker2005_LAB_D65_2";
+    
+  /*  CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold,/
+    string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_)
+ */   vector<double> saturated_threshold(2);
     saturated_threshold[0] = 0.02;
     saturated_threshold[1] = 0.98;
     Mat src_Mat = test_src/255;
     Mat dst;
-    string dst_colorspace = "RGB_Base";
-    string dst_illuminant = "D65";
-    int dst_observer = 2;
+    string dst_colorspace = "sRGB";
+    string dst_illuminant= "D65";
+    int dst_observer =2 ;
     Mat dst_whites;
     string colorchecker = "Macbeth_D65_2";
   //  vector<double> saturated_threshold;
     string colorspace = "sRGB";
-    string linear_= "gamma";
+    string linear_= "Linear_color_logpolyfit";
+   // string linear_ = "identity";
     float gamma = 2.2;
     int deg = 3;
-    string distance_ = "de00";
+    string distance_ = "de94";
+    //string distance_ = "rgb";
     string dist_illuminant = "D65"; 
     int dist_observer = 2;
     Mat weights_list; 
     double weights_coeff = 0;
     bool weights_color = false;
     string initial_method = "least_square";
-    double xtol_ = 1e-4;
-    double ftol_ = 1e-4;
-
+   // string initial_method = "white_balance";
+    string shape = "3x3";
+   // CCM_4x3 ccmtest();
     CCM_3x3 ccmtest(src_Mat, dst, dst_colorspace, dst_illuminant, dst_observer, dst_whites, colorchecker, saturated_threshold, colorspace, linear_,
-        gamma, deg, distance_, dist_illuminant,dist_observer, weights_list, weights_coeff, weights_color,  initial_method, xtol_, ftol_);
-    ccmtest.calculate() ;
+        gamma, deg, dist_illuminant,dist_observer, weights_list, weights_coeff, weights_color,  shape);
+    ccmtest.calc(initial_method, distance_);
+    //ccmtest.value(10000);
+    //ccmtest.prepare();
+    //string imgfile = "D:/OpenCV/input2.png";
+    //Mat output_image;
+    //output_image = ccmtest.infer_image(imgfile);
+    //imwrite("D:/OpenCV/input2_infer"+distance_ +".png", output_image);
+    //cout << "ccmtest.src_rgbl_masked" << ccmtest.src_rgbl_masked << endl ;
     /*
     Mat test = (Mat_<double>(6, 1) << 0.37542,0.652,0.61365,0.4986,0.70916,0.40554);
     Mat test_dst = (Mat_<double>(6, 1) << 0.14078353, 0.46619182, 0.58291028, 0.41416074, 0.6622565, 0.32723434);

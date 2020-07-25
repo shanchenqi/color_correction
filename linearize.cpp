@@ -2,9 +2,11 @@
 
 Mat Linear::linearize(Mat inp)
 {
+    cout<<"***************linear**************"<<endl;
     return inp;
 }
-Mat Linear::mask_copyto(Mat src, Mat mask) {
+//Mat Linear::mask_copyto(Mat src, Mat mask) {
+Mat mask_copyto(Mat src, Mat mask) {
     Mat src_(countNonZero(mask), 1, src.type());
     int countone = 0;
     
@@ -38,8 +40,19 @@ Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorC
   
     this->src = mask_copyto(src, mask);
     this->dst = mask_copyto(cc.rgbl, mask);
- 
+    //src.copyTo(src_, mask);
+   // src.setTo(src_, mask);
+   // cc.rgbl.setTo(dst_, mask);
+   // cc.rgbl.copyTo(dst_, mask);
+   // this->src = src_;
+   // this->dst = dst_;
+  //  src.copyTo(src, mask);
+ //   cc.rgbl.copyTo(dst, mask);
+  //  cout << "src1234" << src << endl;
+  //  src = src_.clone();
+  //  dst = dst_.clone();
     calc();
+    //cout <<"Linear_color_polyfit" << endl;
 }
 
 
@@ -56,9 +69,7 @@ void Linear_color_polyfit::calc(void)
     Mat rd = dChannels[0];
     Mat gd = dChannels[1];
     Mat bd = dChannels[2];
-    cout << "rs"<<rs << endl;
     
-
     pr = polyfit(rs, rd, deg);
     pg = polyfit(gs, gd, deg);
     pb = polyfit(bs, bd, deg);
@@ -90,14 +101,19 @@ Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, 
     Mat dst_(countNonZero(mask), 1, cc.rgbl.type());
     this->deg = deg;
     this->src = mask_copyto(src, mask);
-    this->dst = mask_copyto(cc.rgbl, mask);  
-    cout <<"dst"<< this->dst << endl;
+    this->dst = mask_copyto(cc.rgbl, mask);
     calc();
 }
 
 
 void Linear_color_logpolyfit::calc(void)
 {
+   // Mat rs = src.rowRange(0, 1).clone();
+  //  Mat gs = src.rowRange(1, 2).clone();
+  //  Mat bs = src.rowRange(2, 3).clone();
+ //   Mat rd = dst.rowRange(0, 1).clone();
+ //   Mat gd = dst.rowRange(1, 2).clone();
+  //  Mat bd = dst.rowRange(2, 3).clone();
     Mat sChannels[3];
     Mat dChannels[3];
     split(src, sChannels);
@@ -109,17 +125,15 @@ void Linear_color_logpolyfit::calc(void)
     Mat rd = dChannels[0];
     Mat gd = dChannels[1];
     Mat bd = dChannels[2];
-    cout << rs << endl;
-    cout << rd << endl;
     pr = _polyfit(rs, rd, deg);
     pg = _polyfit(gs, gd, deg);
     pb = _polyfit(bs, bd, deg);
-    cout << "src" << pr << endl;
 }
 
 
 Mat Linear_color_logpolyfit::linearize(Mat inp)
 {
+    cout<<"**********color_logpolyfit********** "<< endl;
     Mat channels[3];
     split(inp, channels);
     Mat r = channels[0];
@@ -127,21 +141,18 @@ Mat Linear_color_logpolyfit::linearize(Mat inp)
     Mat b = channels[2];
     vector<Mat> channel;
     Mat res;
-    channel.push_back(_lin(pr, r,deg));
+    channel.push_back(_lin(pr, r,deg));   
     channel.push_back(_lin(pg, g,deg));
     channel.push_back(_lin(pb, b,deg));
     merge(channel, res);
     return res;
-
 }
-
 
 Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1])& ~cc.white_mask;
     Mat src_(countNonZero(mask), 1, src.type());
     Mat dst_(countNonZero(mask), 1, cc.grayl.type());
     this->deg = deg;
-
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
     this->dst = mask_copyto(cc.grayl, mask);
@@ -174,19 +185,16 @@ Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, int deg, Mat src, Co
     Mat src_(countNonZero(mask), 1, src.type());
     Mat dst_(countNonZero(mask), 1, cc.grayl.type());
     this->deg = deg;
-
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
     this->dst = mask_copyto(cc.grayl, mask);
     calc();
 }
 
-
 void Linear_gray_logpolyfit::calc(void)
 {
     this->p = _polyfit(src, dst, deg);
 }
-
 
 Mat Linear_gray_logpolyfit::linearize(Mat inp)
 {
@@ -194,7 +202,6 @@ Mat Linear_gray_logpolyfit::linearize(Mat inp)
     split(inp, inpChannels);
     vector<Mat> channel;
     Mat res;
-
     channel.push_back(_lin( p, inpChannels[0], deg));
     channel.push_back(_lin( p, inpChannels[1], deg));
     channel.push_back(_lin( p, inpChannels[2], deg));
@@ -203,8 +210,7 @@ Mat Linear_gray_logpolyfit::linearize(Mat inp)
 }
 
 
-Mat Linear::_polyfit(Mat src, Mat dst, int deg) {
-    
+Mat Linear::_polyfit(Mat src, Mat dst, int deg) { 
     Mat mask_ = (src > 0) & (dst > 0);
     mask_.convertTo(mask_, CV_64F);
     Mat src_, dst_;
@@ -218,8 +224,7 @@ Mat Linear::_polyfit(Mat src, Mat dst, int deg) {
 }
 
 
-Mat Linear::_lin(Mat p, Mat x, int deg) {
-    
+Mat Linear::_lin(Mat p, Mat x, int deg) {  
     Mat mask_ = x >= 0;
     Mat y;
     log(x, y);
@@ -246,7 +251,6 @@ Mat Linear::polyfit(Mat src_x, Mat src_y, int order) {
     }
     Mat w;
     cv::solve(A, srcY, w, DECOMP_SVD);
-    cout << "polifit" <<w<< endl;
     return w;
 }
 
@@ -254,42 +258,39 @@ Mat Linear::poly1d(Mat src, Mat w, int deg) {
     Mat res_polyfit(src.size(),src.type());
     for (int i = 0; i < src.rows; i++) {
         for (int j = 0; j < src.cols; j++) {
-                double res = 0;
-                for (int d = 0; d <=deg; d++) {
-                    res += pow(src.at<double>(i, j), d) * w.at<double>( d,0);
-                    res_polyfit.at<double>(i, j) = res;
-            }
-           
+            double res = 0;
+            for (int d = 0; d <= deg; d++) {
+                res += pow(src.at<double>(i, j), d) * w.at<double>(d, 0);
+                res_polyfit.at<double>(i, j) = res;
+            }      
         }
-    }
-    
+    }  
     return res_polyfit;
 }
 
 
-
-Linear* get_linear(string linear) {
-    Linear* p = new Linear;
+Linear* get_linear(string linear, float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+    Linear* p = new Linear(gamma_, deg, src, cc, saturated_threshold);
     if (linear == "Linear") {
-        p = new Linear;
+        p = new Linear(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_identity") {
-        p = new Linear_identity;
+        p = new Linear_identity(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_gamma") {
-        p = new Linear_gamma;
+        p = new Linear_gamma(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_color_polyfit") {
-        p = new Linear_color_polyfit;
+        p = new Linear_color_polyfit(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_color_logpolyfit") {
-        p = new Linear_color_logpolyfit;
+        p = new Linear_color_logpolyfit(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_gray_polyfit") {
-        p = new Linear_gray_polyfit;
+        p = new Linear_gray_polyfit(gamma_, deg, src, cc, saturated_threshold);
     }
     else if (linear == "Linear_gray_logpolyfit") {
-        p = new Linear_gray_logpolyfit;
+        p = new Linear_gray_logpolyfit(gamma_, deg, src, cc, saturated_threshold);
     }
     return p;
 }

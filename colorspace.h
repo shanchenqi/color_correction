@@ -4,9 +4,8 @@
 #include "utils.h"
 #include "IO.h"
 
-using namespace std;
-using namespace cv;
-
+//using namespace std;
+//using namespace cv;
 class RGB_Base
 {
 public:
@@ -16,6 +15,10 @@ public:
     double yg;
     double xb;
     double yb;
+    double alpha;
+    double beta;
+    double phi;
+    double _K0;
     IO io_base;
     double gamma;
     Mat _M_RGBL2XYZ_base;
@@ -43,19 +46,18 @@ public:
 class sRGB_Base : public RGB_Base
 {
 public:
-    double xr;
-    double yr;
-    double xg;
-    double yg;
-    double xb;
-    double yb;
-    double alpha;
-    double beta;
-    double phi;
-    double gamma;
-    double _K0;
-
-    sRGB_Base();
+    sRGB_Base() : RGB_Base() {
+        xr = 0.6400;
+        yr = 0.3300;
+        xg = 0.3000;
+        yg = 0.6000;
+        xb = 0.1500;
+        yb = 0.0600;
+        alpha = 1.055;
+        beta = 0.0031308;
+        phi = 12.92;
+        gamma = 2.4;
+    }
 
     double K0();
     double _rgb2rgbl_ele(double x);
@@ -64,13 +66,12 @@ public:
     Mat rgbl2rgb(Mat rgbl);
 };
 
-
 class sRGB : public sRGB_Base
 {
 public:
-    Mat _M_RGBL2XYZ_base;
+   // Mat _M_RGBL2XYZ_base;
     sRGB() : sRGB_Base() {
-        Mat _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
+        _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
             0.41239080, 0.35758434, 0.18048079,
             0.21263901, 0.71516868, 0.07219232,
             0.01933082, 0.11919478, 0.95053215);
@@ -174,6 +175,5 @@ public:
 
 
 RGB_Base* get_colorspace(string colorspace);
-
 
 #endif

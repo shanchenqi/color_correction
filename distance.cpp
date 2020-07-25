@@ -102,10 +102,10 @@ double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL = 1.0, doub
 	}
 	double H;
 
-	if (labs(h1 - h2) <= to_rad(180.0)) {
+	if (abs(h1 - h2) <= to_rad(180.0)) {
 		H = (h1 + h2) / 2.0;
 	}
-	else if (labs(h1 - h2) > to_rad(180) && h1 + h2 < to_rad(360)) {
+	else if (abs(h1 - h2) > to_rad(180) && h1 + h2 < to_rad(360)) {
 		H = (h1 + h2 + to_rad(360)) / 2.0;
 	}
 	else {
@@ -139,6 +139,7 @@ double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL = 1.0, doub
 	double sL = 1.0 + ((0.015 * powl(avg_l - 50.0, 2.0)) / sqrtl(20.0 + powl(avg_l - 50.0, 2.0)));
 	double rt = -2.0 * sqrt_c_pow * sinl(to_rad(60.0) * expl(-powl((H - to_rad(275.0)) / to_rad(25.0), 2.0)));
 	double res = (powl(delta_L / (kL * sL), 2.0) + powl(delta_C / (kC * sC), 2.0) + powl(delta_H / (kH * sH), 2.0) + rt * (delta_C / (kC * sC)) * (delta_H / (kH * sH)));
+	//return  sqrtl(res);
 	return res > 0 ? sqrtl(res) : 0;
 }
 
@@ -156,20 +157,20 @@ Mat distance_s(Mat Lab1, Mat Lab2, string distance) {
 			
 			LAB lab1 = { l1,a1,b1 };
 			LAB lab2 = { l2,a2,b2 };
-			if (distance == "distance_de94") {
+			if (distance == "de94") {
 				distance_lab.at<double>(i, j) = deltacE_ciede94(lab1, lab2);
 			}
-			else if (distance == "distance_de76") {
+			else if (distance == "de76" || distance == "rgbl" || distance == "rgb") {
 				distance_lab.at<double>(i, j) = deltaE_cie76(lab1, lab2);
 			}
-			else if (distance == "distance_cmc") {
+			else if (distance == "cmc") {
 				distance_lab.at<double>(i, j) = deltacE_cmc(lab1, lab2);
 			}
-			else if (distance == "distance_de00") {
+			else if (distance == "de00") {
 				distance_lab.at<double>(i, j) = deltacE_ciede2000(lab1, lab2);
 			}
 			else {
-				cout << "wrong distance type" << endl;
+				throw  "wrong distance type" ;
 			}
 		}
 

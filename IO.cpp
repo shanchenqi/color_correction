@@ -24,13 +24,8 @@ vector<double>(*xyY)(double, double, double);
  IO::IO(string illuminant, int observer) {
     m_illuminant = illuminant;
     m_observer = observer;
-
-
 }
 IO::~IO() {}
-
-
-
 
 bool IO::operator<(const IO& other)const {//todo why<
     {
@@ -38,9 +33,7 @@ bool IO::operator<(const IO& other)const {//todo why<
     }
 }
 
-
-vector<double> xyY2XYZ(double x, double y, double Y) {
-    
+vector<double> xyY2XYZ(double x, double y, double Y) {  
     double X;
     double Z;
     X = Y * x / y;
@@ -49,7 +42,6 @@ vector<double> xyY2XYZ(double x, double y, double Y) {
     xyY2XYZ[0] = X;
     xyY2XYZ[1] = Y;
     xyY2XYZ[2] = Z;
-
     return xyY2XYZ;
 }
 
@@ -71,35 +63,29 @@ map <IO, vector<double>> get_illuminant() {
     it = illuminants_xy.begin();
     for (it; it != illuminants_xy.end(); it++)
     {
-
         double x = it->second[0];
         double y = it->second[1];
         double Y = 1;
         vector<double> res;
         res = xyY2XYZ(x, y, Y);
         illuminants1[it->first] = res;
-
     }
-
     illuminants1[D65_2] = { 0.95047, 1.0, 1.08883 };   
     illuminants1[D65_10] = { 0.94811, 1.0, 1.07304 };
     return illuminants1;
 }
 map <tuple<IO, IO, string>, cv::Mat > CAMs;
 
-Mat cam(IO sio, IO dio, string method) {
-   
+Mat cam(IO sio, IO dio, string method) { 
     Mat  Von_Kries = Von_Kries_Mat;
     Mat Bradford = Bradford_Mat;
     map <String, vector< cv::Mat >> MAs;
     MAs["Identity"] = { Mat::eye(cv::Size(3,3),CV_64FC1) , Mat::eye(cv::Size(3,3),CV_64FC1) };
     MAs["Von_Krie"] = { Von_Kries ,Von_Kries.inv() };
     MAs["Bradford"] = { Bradford ,Bradford.inv() };
-
     if (CAMs.count(make_tuple(dio, sio, method)) == 1) {//todo count? 
         return CAMs[make_tuple(dio, sio, method)];
     }
-
     Mat XYZws = Mat(illuminants[dio]);
     Mat XYZWd = Mat(illuminants[sio]);
     Mat MA = MAs[method][0];
@@ -111,12 +97,9 @@ Mat cam(IO sio, IO dio, string method) {
     for (int i = 0; i < 3; i++) {
         me.at<double>(i, i) = MA_res3.at<double>(i, 0);
     }
-
     Mat M = MA_inv * (me);
     CAMs[make_tuple(dio, sio, method)] = M;
     return M;
-
-
 }
 
 

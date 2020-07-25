@@ -6,14 +6,15 @@ ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 	//if (colorspace == "lab")
 	if (colorspace == "LAB")
 	{
-		lab = color;	
-		io = io_;
+		this->lab = color;	
+		this->io = io_;
 		
 	}
 	else
 	{
-		rgb = color;
-		cs = get_colorspace(colorspace);
+		this->rgb = color;
+		this->cs = get_colorspace(colorspace);
+		//this->cs =new sRGB£»
 	}
 
 	//vector<bool> white_m(color.rows, false);
@@ -42,27 +43,31 @@ ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 
 ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_)
 {
-	cc = colorchecker;
-	cs = get_colorspace(colorspace);
-	io = io_;
+	this->cc = colorchecker;
+	this->cs = get_colorspace(colorspace);
+	this->io = io_;
 	
-	if (!cc.lab.empty())
+	if (!this->cc.lab.empty())
 	{
-		
-		lab = lab2lab(cc.lab, cc.io, io_);
-		xyz = lab2xyz(lab, io_);
-		rgbl = cs->xyz2rgbl(xyz, io_);
-		rgb = cs->rgbl2rgb(rgbl);
+		cout<<"******************"<<endl;
+		this->lab = lab2lab(this->cc.lab, cc.io, io_);
+		this->xyz = lab2xyz(lab, io_);
+		//cout << "xyz" << this->xyz << endl;
+		this->rgbl = this->cs->xyz2rgbl(this->xyz, io_);
+		//cout << "this->rgbl" << this->rgbl;
+		this->rgb = cs->rgbl2rgb(this->rgbl);
+		//cout << "this->rgb" << this->rgb << endl;;
+		//cout << "this->rgbl" << this->rgbl << endl;
 	}
 	else
 	{
-		
-		rgb = cs->xyz2rgb(cc.cs->rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
-		rgbl = cs->rgb2rgbl(rgb);
-		xyz = cs->rgbl2xyz(rgbl, io);
-		lab = xyz2lab(xyz, io);
+		cout << "############" << endl;
+		this->rgb = cs->xyz2rgb(cc.cs->rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
+		this->rgbl = cs->rgb2rgbl(rgb);
+		this->xyz = cs->rgbl2xyz(rgbl, io);
+		this->lab = xyz2lab(xyz, io);
 	}
-	grayl = xyz2grayl(xyz);
+	this->grayl = xyz2grayl(xyz);
 	this->white_mask = cc.white_mask;
 	this->color_mask = cc.color_mask;
 }
