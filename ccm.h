@@ -76,7 +76,7 @@ public:
     double loss_rgbl(Mat ccm);
     void calculate_rgbl(void);
     double loss(Mat ccm);
-    virtual void calculate(void);
+    void calculate(void);
     void value(int number);
     Mat infer(Mat img, bool L=false);
    // Mat infer_image(string imgfile, bool L, int inp_size, int out_size, string out_dtype);
@@ -95,7 +95,6 @@ public:
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl) ;
     Mat infer(Mat img, bool L) ;
     void value(int number) ;
-    void calculate(void);
 };
 
 static Mat ColorChecker2005_LAB_D50_2 = (Mat_<Vec3d>(24, 1) <<
