@@ -38,9 +38,9 @@ Mat RGB_Base::cal_M_RGBL2XYZ_base() {
     // cout << S.type()<<endl;
     
  
-    Mat Sr = S.rowRange(0, 1).clone();
-    Mat Sg = S.rowRange(1, 2).clone();
-    Mat Sb = S.rowRange(2, 3).clone();
+    Mat Sr = S.rowRange(0, 1);
+    Mat Sg = S.rowRange(1, 2);
+    Mat Sb = S.rowRange(2, 3);
     /*Mat sChannels[3];
     split(S, sChannels);
 
@@ -58,10 +58,9 @@ Mat RGB_Base::cal_M_RGBL2XYZ_base() {
 
 Mat RGB_Base::M_RGBL2XYZ_base() {
     if (!_M_RGBL2XYZ_base.empty()) {
-        //cout << "(((((((((((((((((( _M_RGBL2XYZ_base))))))))))))))))))))" <<_M_RGBL2XYZ_base << endl;
         return _M_RGBL2XYZ_base;
     }
-    //cout << "&&&&&&&&&&&&&&&& _M_RGBL2XYZ_base&&&&&&&&&&&&&&&" << _M_RGBL2XYZ_base << endl;
+   
     return cal_M_RGBL2XYZ_base();
 }
 

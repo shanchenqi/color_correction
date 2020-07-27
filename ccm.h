@@ -66,7 +66,7 @@ public:
     //struct color_c* pcolor_c = &color_ca;
     //CCM_3x3(Mat src_, struct color_c* pcolor_c);
     CCM_3x3() {};
-    CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, int deg,  string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color,  string shape);
+    CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, double gamma, int deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, string shape);
 
     virtual void prepare(void) {}
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl);
@@ -78,7 +78,7 @@ public:
     double loss(Mat ccm);
     void calculate(void);
     void value(int number);
-    Mat infer(Mat img, bool L=false);
+    virtual Mat infer(Mat img, bool L=false);
    // Mat infer_image(string imgfile, bool L, int inp_size, int out_size, string out_dtype);
     Mat infer_image(string imgfile, bool L = false, int inp_size = 255, int out_size = 255);
     void calc(string initial_method, string distance_);
@@ -95,10 +95,7 @@ public:
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl) ;
     Mat infer(Mat img, bool L) ;
     void value(int number) ;
-<<<<<<< HEAD
-    
-=======
->>>>>>> 40caa48522653e4fc5839abd9d314edb0a0270ca
+    void calculate(void);
 };
 
 static Mat ColorChecker2005_LAB_D50_2 = (Mat_<Vec3d>(24, 1) <<
@@ -156,7 +153,7 @@ static Mat ColorChecker2005_LAB_D65_2 = (Mat_<Vec3d>(24, 1) <<
 
 
 
-static Mat Arange_18_24 = (Mat_<double>(1, 7) <<  17,18, 19, 20, 21, 22, 23);
+static Mat Arange_18_24 = (Mat_<double>(1, 6) <<  18, 19, 20, 21, 22, 23);
 static ColorChecker colorchecker_Macbeth = ColorChecker(ColorChecker2005_LAB_D50_2 , "LAB", D50_2, Arange_18_24);
 static ColorChecker colorchecker_Macbeth_D65_2 = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", D65_2, Arange_18_24);
 

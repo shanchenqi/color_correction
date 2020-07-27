@@ -34,7 +34,7 @@ public:
 class Linear_gamma : public Linear
 {
 public:
-    float gamma;
+    double gamma;
     Linear_gamma() {};
     Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     Mat linearize(Mat inp);
@@ -107,6 +107,6 @@ public:
 };
 
 
-Linear* get_linear(string linear, float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+Linear* get_linear(string linear, double gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
 Mat mask_copyto(Mat src, Mat mask);
 #endif

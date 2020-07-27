@@ -150,11 +150,11 @@ Mat lab2lab(Mat lab, IO sio, IO dio) {
 }
 
 double gamma_correction_f(double f, double gamma) {
-    double k = f >= 0 ? pow(f, gamma) : -pow((-f), gamma);
+    double k =( f >= 0 ? pow(f, gamma) : -pow((-f), gamma));
     return k;
 }
 
-Mat gamma_correction(cv::Mat& src, double K) {
+Mat gamma_correction(cv::Mat src, double K) {
     Mat dst(src.size(),src.type());
     for (int row = 0; row < src.rows; row++) {
         for (int col = 0; col < src.cols; col++) {
@@ -166,30 +166,7 @@ Mat gamma_correction(cv::Mat& src, double K) {
 
 
 
-Mat mult(Mat xyz,Mat ccm){
-    //cout<<ccm<<endl;
-    int c = xyz.channels();
-
-    Mat res(xyz.size(),CV_64FC3);
-    for (int i = 0; i < xyz.rows; i++) {
-        for (int j = 0; j < xyz.cols; j++) {
-            for (int m = 0; m < c; m++) {//¾ØÕó³Ë·¨todoº¯Êý
-                
-                res.at<Vec3d>(i, j)[m] = 0;
-                for (int n = 0; n < c; n++) {
-                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec3d>(i, j)[n] * ccm.at<double>(n, m);
-                        /*double res1 = xyz.at<Vec3d>(i, j)[0] * ccm.at<double>(0, m);
-                        double res2 = xyz.at<Vec3d>(i, j)[1] * ccm.at<double>(1, m);
-                        double res3 = xyz.at<Vec3d>(i, j)[2] * ccm.at<double>(2, m);
-                        res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;*/
-                }
-            
-            }
-        }
-    }
-    return res;
-}
-Mat mult4D(Mat xyz, Mat ccm) {
+Mat mult(Mat xyz, Mat ccm) {
     //cout<<ccm<<endl;
     //int c = xyz.channels();
 
@@ -201,6 +178,29 @@ Mat mult4D(Mat xyz, Mat ccm) {
                 res.at<Vec3d>(i, j)[m] = 0;
                 for (int n = 0; n < xyz.channels(); n++) {
                     res.at<Vec3d>(i, j)[m] += xyz.at<Vec4d>(i, j)[n] * ccm.at<double>(n, m);
+                    /*double res1 = xyz.at<Vec3d>(i, j)[0] * ccm.at<double>(0, m);
+                    double res2 = xyz.at<Vec3d>(i, j)[1] * ccm.at<double>(1, m);
+                    double res3 = xyz.at<Vec3d>(i, j)[2] * ccm.at<double>(2, m);
+                    res.at<Vec3d>(i, j)[m] = res1 + res2 + res3;*/
+                }
+
+            }
+        }
+    }
+    return res;
+}
+Mat mult3D(Mat xyz, Mat ccm) {
+    //cout<<ccm<<endl;
+    //int c = xyz.channels();
+
+    Mat res(xyz.size(), CV_64FC3);
+    for (int i = 0; i < xyz.rows; i++) {
+        for (int j = 0; j < xyz.cols; j++) {
+            for (int m = 0; m < res.channels(); m++) {//¾ØÕó³Ë·¨todoº¯Êý
+
+                res.at<Vec3d>(i, j)[m] = 0;
+                for (int n = 0; n < xyz.channels(); n++) {
+                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec3d>(i, j)[n] * ccm.at<double>(n, m);
                     /*double res1 = xyz.at<Vec3d>(i, j)[0] * ccm.at<double>(0, m);
                     double res2 = xyz.at<Vec3d>(i, j)[1] * ccm.at<double>(1, m);
                     double res3 = xyz.at<Vec3d>(i, j)[2] * ccm.at<double>(2, m);

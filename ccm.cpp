@@ -3,7 +3,7 @@
 
 extern int loss_F_count = 0;
 
-CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, int deg,  string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color,  string ccm_shape)
+CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, double gamma, int deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, string ccm_shape)
 {
     this->shape = (ccm_shape == "3x3") ? 3 : 4;
     cout <<"this->shape   "<< this->shape << endl;
@@ -34,6 +34,7 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
         Mat weights_;
         pow(cc_lab_0, weights_coeff, weights_);
         this->weights = weights_;
+        cout <<"this->weights"<< this->weights << endl;
     }
 
     Mat weight_mask = Mat::ones( src.rows, 1, CV_64FC1);
@@ -49,9 +50,10 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
     cout << "*************this->src_rgbl_masked***********" << this->src_rgbl_masked << endl;
     this->dst_rgb_masked = mask_copyto(this->cc.rgb, mask);
     this->dst_rgbl_masked = mask_copyto(this->cc.rgbl, mask);
+    cout << "*************this->dst_rgbl_masked***********" << this->dst_rgbl_masked << endl;
     this->dst_lab_masked = mask_copyto(this->cc.lab, mask);
     if (this->weights.data) {
-        this->weights.copyTo(this->weights_masked, this->mask);
+        this->weights_masked=mask_copyto(this->weights, this->mask);
         this->weights_masked_norm = this->weights_masked / mean(this->weights_masked);
     }
     this->masked_len = this->src_rgb_masked.rows;
@@ -96,7 +98,8 @@ void CCM_3x3::calc(string initial_method,string distance_) {
   }
 }
 Mat CCM_3x3::initial_white_balance(Mat src_rgbl, Mat dst_rgbl) {
-    Mat sChannels[3];
+    Mat sChannels[4];
+    //cout <<"src_rgbl"<< src_rgbl;
     split(src_rgbl, sChannels);
     Mat dChannels[3];
     split(dst_rgbl, dChannels);
@@ -134,19 +137,19 @@ public:
         Mat ccm(loss_shape, 3, CV_64F);
         for (int i = 0; i < ccm.rows; i++) {
             for (int j = 0; j < ccm.cols; j++) {
-                ccm.at<double>(i, j) = x[ccm.rows * i + j];
+                ccm.at<double>(i, j) = x[ccm.cols * i + j];
             }
         }
+        cout << ccm << endl;
         loss_F_count++;
         Mat res_loss(ccm_loss.src_rgbl_masked.size(), ccm_loss.src_rgbl_masked.type());
         res_loss = mult(ccm_loss.src_rgbl_masked, ccm);
         Mat lab_est = ccm_loss.cs->rgbl2rgb(res_loss);
-        cout << ccm_loss.cs->rgbl2rgb(res_loss) << endl;
         Mat dist = distance_s(lab_est, ccm_loss.dst_rgb_masked, ccm_loss.distance);
         Mat dist_;
         pow(dist, 2.0, dist_);
         if (ccm_loss.weights.data) {
-            dist_ = ccm_loss.weights_masked_norm * dist_;
+            dist_ = ccm_loss.weights_masked_norm.mul(dist_);
         }
         Scalar ss = sum(dist_);
         return ss[0];
@@ -154,26 +157,26 @@ public:
 };
 
 void CCM_3x3::calculate_rgb(void) {
+
     cv::Ptr<DownhillSolver> solver = cv::DownhillSolver::create();
     cv::Ptr<MinProblemSolver::Function> ptr_F(new loss_rgb_F(*this,this->shape));
     Mat reshapeccm = this->ccm0.reshape(0, 1);  
     solver->setFunction(ptr_F);
     RNG step_rng;
-    Mat_<double>step(reshapeccm.size());
+    Mat_<double>step(reshapeccm.size()); 
+    step_rng.fill(step, RNG::UNIFORM, -1, 1.);
     solver->setInitStep(step);
-    step_rng.fill(step, RNG::UNIFORM, 0., 1.);
     cout << "reshapeccm" << reshapeccm << endl;
     double res = solver->minimize(reshapeccm);
     cout << "reshapeccm" << reshapeccm << endl;
     this->ccm = reshapeccm.reshape(0, this->shape);
     cout << "loss_F_count  " << loss_F_count << endl;
-    //cout<<"int loss_F_count"<< loss_F_count <<endl;
     cout << "res" << res << endl;
     cout << "error" << res / this->masked_len << endl;
     double error = pow((res / this->masked_len), 0.5);
     cout << "error:" << error << endl;
 }
-//void CCM_3x3::prepare(void) {};
+
 double CCM_3x3::loss_rgbl(Mat ccm) {
     Mat dist_;
     Mat dist_res = mult(this->src_rgbl_masked, this->ccm);
@@ -210,31 +213,39 @@ public:
     int loss_shape;
     //loss_F(CCM_3x3 ccm3x3, int shape) {
     loss_F(CCM_3x3 ccm3x3, int shape) {
-        ccm_loss=ccm3x3;
+        ccm_loss = ccm3x3;
         loss_shape = shape;
     }
     int getDims() const { return loss_shape*3; }
     double calc(const double* x) const {
+       
         loss_F_count++;
         Mat ccm(loss_shape, 3, CV_64F);
         for (int i = 0; i < ccm.rows; i++) {
             for (int j = 0; j < ccm.cols; j++) {
-                ccm.at<double>(i, j) = x[ccm.rows * i + j];
+                ccm.at<double>(i, j) = x[ccm.cols * i + j];
+              //  cout <<"i "<<i<<"j "<< j<<" "<< ccm.rows * i + j << endl;
             }
         }  
+       // cout << ccm << endl;
         IO io_;
         //Mat res_loss(ccm_loss.src_rgbl_masked.size(), ccm_loss.src_rgbl_masked.type());
         Mat res_loss(ccm_loss.src_rgbl_masked.size(),CV_64FC3);
-      //  cout << " ****************ccm_loss.src_rgbl_masked********" << ccm_loss.src_rgbl_masked << endl;
-        res_loss = mult4D(ccm_loss.src_rgbl_masked, ccm);
-        Mat lab_est = ccm_loss.cs->rgbl2lab(res_loss, io_);
+        //cout << " ****************ccm_loss.src_rgbl_masked********" << ccm_loss.src_rgbl_masked << endl;
+        res_loss = mult(ccm_loss.src_rgbl_masked, ccm);
+        Mat lab_est(res_loss.size(), res_loss.type());
+        lab_est = ccm_loss.cs->rgbl2lab(res_loss, io_);
         Mat dist = distance_s(lab_est, ccm_loss.dst_lab_masked, ccm_loss.distance);
+        cout << dist.t() << endl;
+
         Mat dist_;   
         pow(dist, 2, dist_);
         if (ccm_loss.weights.data) {
-            dist_ = ccm_loss.weights_masked_norm * dist_;
+            dist_ = ccm_loss.weights_masked_norm.mul( dist_);
+            // cout << dist << endl;
         }
         Scalar ss = sum(dist_);
+        //cout <<"res "<<ss[0]<<endl;
         return ss[0];
     }
 };
@@ -247,12 +258,12 @@ void CCM_3x3::calculate(void) {
     Mat reshapeccm = this->ccm0.reshape(0, 1);
     RNG step_rng;
     Mat_<double>step(reshapeccm.size());
-    step_rng.fill(step, RNG::UNIFORM, 0., 1.);
+    step_rng.fill(step, RNG::UNIFORM, -1., 1.);
     solver->setInitStep(step);
     cout << "reshapeccm" << reshapeccm << endl;
     double res = solver->minimize(reshapeccm);
     cout << "reshapeccm"<< reshapeccm << endl;
-    this->ccm = reshapeccm.reshape(0, 3);
+    this->ccm = reshapeccm.reshape(0, this->shape);
     cout << "loss_F_count  " << loss_F_count<<endl;
     //cout<<"int loss_F_count"<< loss_F_count <<endl;
     cout<<"res"<<res<<endl;
@@ -285,7 +296,7 @@ Mat CCM_3x3::infer(Mat img, bool L) {
     L = false;
     Mat img_lin = this->linear->linearize(img);
     Mat img_ccm(img_lin.size(), img_lin.type());
-    img_ccm = mult(img_lin, this->ccm);
+    img_ccm = mult3D(img_lin, this->ccm);
     if (L == true) {
         return img_ccm;
     }
@@ -298,7 +309,7 @@ Mat CCM_3x3::infer_image(string imgfile, bool L , int inp_size , int out_size ) 
     cvtColor(img, img_, COLOR_BGR2RGB);
     img_.convertTo(img_, CV_64F);
     img_ = img_ / inp_size;
-    Mat out = infer(img_, L);
+    Mat out = this->infer(img_, L);
     Mat out_ = out * out_size;
     out_.convertTo(out_, CV_8UC3);
     Mat img_out = min(max(out_, 0), out_size);
@@ -330,7 +341,7 @@ Mat CCM_4x3::add_column(Mat arr) {
     arrout_channel.push_back(arr1);
     merge(arrout_channel, arr_out);
     //hconcat(arr, arr1, arr_out);
-    cout << "arr_out" << arr_out.size() << endl;
+   
     return arr_out;
 }
 
@@ -351,11 +362,12 @@ Mat CCM_4x3::initial_white_balance(Mat src_rgbl, Mat dst_rgbl) {
 }
 
 Mat CCM_4x3::infer(Mat img, bool L ) {
+   
     if (!this->ccm.data) {
         throw "No CCM values!";
     }
     Mat img_lin = this->linear->linearize(img);
-    Mat img_ccm = add_column(img_lin) * this->ccm;
+    Mat img_ccm = mult(add_column(img_lin) , this->ccm);
     if (L) {
         return img_ccm;
     }
@@ -363,17 +375,21 @@ Mat CCM_4x3::infer(Mat img, bool L ) {
 }
 
 void CCM_4x3::value(int number) {
+
     RNG rng;
-    Mat_<double>rand(number, 3);
+    Mat_<Vec3d>rand(number, 1);
     rng.fill(rand, RNG::UNIFORM, 0, 1);
     Mat mask_ = saturate(infer(rand, false), 0, 1);
     Scalar ss = sum(mask_);
     double sat = ss[0] / number;
     cout << "sat:" << sat << endl;
     Mat rgbl = this->cs->rgb2rgbl(rand);
-    Mat up = this->ccm.rowRange(1, 3);
+    Mat up = this->ccm.rowRange(0, 3);
     Mat down = this->ccm.rowRange(3, this->ccm.rows);
-    mask_ = saturate((rgbl - Mat::ones(number, 1, CV_8U) * down) * up.inv(), 0, 1);
+    Mat ones_infer = Mat::ones(number,1, CV_64F) * down;
+    Mat ones_infer_ = ones_infer.reshape(3,0);
+    
+    mask_ = saturate(mult(rgbl - ones_infer_ ,up.inv()), 0, 1);
     Scalar sss = sum(mask_);
     double dist_ = sss[0] / number;
     cout << "dist:" << dist_ << endl;

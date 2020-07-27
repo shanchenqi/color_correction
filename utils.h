@@ -33,8 +33,8 @@ Mat xyz2xyz(Mat xyz, IO sio, IO dio);
 
 Mat lab2lab(Mat lab, IO sio, IO dio);
 
-Mat gamma_correction(cv::Mat& src, double K);
+Mat gamma_correction(cv::Mat src, double K);
 
 double gamma_correction_f(double f, double gamma);
 Mat mult(Mat xyz, Mat ccm);
-Mat mult4D(Mat xyz, Mat ccm);
+Mat mult3D(Mat xyz, Mat ccm);

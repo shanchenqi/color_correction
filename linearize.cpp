@@ -150,11 +150,14 @@ Mat Linear_color_logpolyfit::linearize(Mat inp)
 
 Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1])& ~cc.white_mask;
+    cout << mask;
     Mat src_(countNonZero(mask), 1, src.type());
     Mat dst_(countNonZero(mask), 1, cc.grayl.type());
     this->deg = deg;
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
+    cout << "src_gray " << src_gray << endl;
+    cout<<"this->src "<< this->src <<endl;
     this->dst = mask_copyto(cc.grayl, mask);
     calc();
 }
@@ -168,6 +171,7 @@ void Linear_gray_polyfit::calc(void)
 
 Mat Linear_gray_polyfit::linearize(Mat inp)
 {
+    cout<<"******Linear_gray_polyfit**********"<<endl;
     Mat inpChannels[3];
     split(inp, inpChannels);
     vector<Mat> channel;
@@ -182,8 +186,7 @@ Mat Linear_gray_polyfit::linearize(Mat inp)
 
 Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]) & ~cc.white_mask;
-    Mat src_(countNonZero(mask), 1, src.type());
-    Mat dst_(countNonZero(mask), 1, cc.grayl.type());
+    
     this->deg = deg;
     Mat src_gray = mask_copyto(src, mask);
     this->src = rgb2gray(src_gray);
@@ -251,6 +254,7 @@ Mat Linear::polyfit(Mat src_x, Mat src_y, int order) {
     }
     Mat w;
     cv::solve(A, srcY, w, DECOMP_SVD);
+    cout << "polyfit "<<w<<endl;
     return w;
 }
 
@@ -269,7 +273,7 @@ Mat Linear::poly1d(Mat src, Mat w, int deg) {
 }
 
 
-Linear* get_linear(string linear, float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+Linear* get_linear(string linear, double gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     Linear* p = new Linear(gamma_, deg, src, cc, saturated_threshold);
     if (linear == "Linear") {
         p = new Linear(gamma_, deg, src, cc, saturated_threshold);
