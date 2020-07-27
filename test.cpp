@@ -153,11 +153,12 @@ int main() {
     string colorchecker = "Macbeth_D65_2";
   //  vector<double> saturated_threshold;
     string colorspace = "sRGB";
-    string linear_= "Linear_color_logpolyfit";
+   // string linear_= "Linear_color_logpolyfit";
+    string linear_ = "gamma";
    // string linear_ = "identity";
     float gamma = 2.2;
     int deg = 3;
-    string distance_ = "de94";
+    string distance_ = "de00";
     //string distance_ = "rgb";
     string dist_illuminant = "D65"; 
     int dist_observer = 2;
@@ -165,10 +166,10 @@ int main() {
     double weights_coeff = 0;
     bool weights_color = false;
     string initial_method = "least_square";
-   // string initial_method = "white_balance";
-    string shape = "3x3";
+  //  string initial_method = "white_balance";
+    string shape = "4x3";
    // CCM_4x3 ccmtest();
-    CCM_3x3 ccmtest(src_Mat, dst, dst_colorspace, dst_illuminant, dst_observer, dst_whites, colorchecker, saturated_threshold, colorspace, linear_,
+    CCM_4x3 ccmtest(src_Mat, dst, dst_colorspace, dst_illuminant, dst_observer, dst_whites, colorchecker, saturated_threshold, colorspace, linear_,
         gamma, deg, dist_illuminant,dist_observer, weights_list, weights_coeff, weights_color,  shape);
     ccmtest.calc(initial_method, distance_);
     //ccmtest.value(10000);
