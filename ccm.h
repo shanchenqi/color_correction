@@ -95,7 +95,10 @@ public:
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl) ;
     Mat infer(Mat img, bool L) ;
     void value(int number) ;
+<<<<<<< HEAD
     
+=======
+>>>>>>> 40caa48522653e4fc5839abd9d314edb0a0270ca
 };
 
 static Mat ColorChecker2005_LAB_D50_2 = (Mat_<Vec3d>(24, 1) <<
