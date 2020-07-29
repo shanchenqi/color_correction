@@ -24,5 +24,5 @@ cv::Mat xyz2xyz(cv::Mat xyz, IO sio, IO dio);
 cv::Mat lab2lab(cv::Mat lab, IO sio, IO dio);
 cv::Mat gammaCorrection(cv::Mat src, double K);
 cv::Mat mult(cv::Mat xyz, cv::Mat ccm);
-cv::Mat mult4D(cv::Mat xyz, cv::Mat ccm);
+cv::Mat mult3D(cv::Mat xyz, cv::Mat ccm);
 #endif

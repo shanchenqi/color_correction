@@ -186,7 +186,7 @@ cv::Mat mult(cv::Mat xyz, cv::Mat ccm)
                 res.at<Vec3d>(i, j)[m] = 0;
                 for (int n = 0; n < xyz.channels(); n++) 
                 {
-                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec3d>(i, j)[n] * ccm.at<double>(n, m);
+                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec4d>(i, j)[n] * ccm.at<double>(n, m);
                 }
             }
         }
@@ -194,7 +194,7 @@ cv::Mat mult(cv::Mat xyz, cv::Mat ccm)
     return res;
 }
 
-cv::Mat mult4D(cv::Mat xyz, cv::Mat ccm) 
+cv::Mat mult3D(cv::Mat xyz, cv::Mat ccm) 
 {
     cv::Mat res(xyz.size(), CV_64FC3);
     for (int i = 0; i < xyz.rows; i++) 
@@ -206,7 +206,7 @@ cv::Mat mult4D(cv::Mat xyz, cv::Mat ccm)
                 res.at<Vec3d>(i, j)[m] = 0;
                 for (int n = 0; n < xyz.channels(); n++)
                 {
-                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec4d>(i, j)[n] * ccm.at<double>(n, m);
+                    res.at<Vec3d>(i, j)[m] += xyz.at<Vec3d>(i, j)[n] * ccm.at<double>(n, m);
                 }
             }
         }
