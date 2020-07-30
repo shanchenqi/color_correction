@@ -1,10 +1,3 @@
-
-#include <string>
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <map>
-#include <tuple>
-#include <cmath>
 #include "distance.h"
 
 

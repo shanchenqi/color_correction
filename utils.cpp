@@ -1,11 +1,5 @@
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <vector>
-#include <map>
-#include <string>
-#include "distance.h"
 #include "utils.h"
-#include "io.h"
+
 
 using namespace cv;
 using namespace std;
@@ -174,7 +168,7 @@ cv::Mat gammaCorrection(cv::Mat src, double K)
     return dst;
 }
 
-cv::Mat mult(cv::Mat xyz, cv::Mat ccm)
+cv::Mat mult(cv::Mat xyz, cv::Mat ccm)//reshape(mxnx3c)£¨£©
 {
     cv::Mat res(xyz.size(), CV_64FC3);
     for (int i = 0; i < xyz.rows; i++) 

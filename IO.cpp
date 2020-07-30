@@ -1,6 +1,4 @@
 #include "IO.h"
-#include <string>
-#include <iostream>
 
 //data from https://en.wikipedia.org/wiki/Standard_illuminant
 

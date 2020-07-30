@@ -1,71 +1,48 @@
 #include "colorspace.h"
-#include "IO.h"
 
 RGB_Base::RGB_Base(void) {
-    this-> xr = 0.6400;
-    this->yr = 0.3300;
-    this->xg = 0.21;
-    this->yg = 0.71;
-    this->xb = 0.1500;
-    this->yb = 0.0600;
-    this->io_base =D65_2;
-    this->gamma = 2.2;
-    this->_M_RGBL2XYZ_base = NULL;
-    this->_M_RGBL2XYZ = {};
-    this->_default_io = D65_2;
-  
+    xr = 0.6400;
+    yr = 0.3300;
+    xg = 0.21;
+    yg = 0.71;
+    xb = 0.1500;
+    yb = 0.0600;
+    io_base = IO("D65", 2);
+    gamma = 2.2;
+    _M_RGBL2XYZ_base = NULL;
+    _M_RGBL2XYZ = {};
+    _default_io = IO("D65", 2);
 }
-              
+
 
 Mat RGB_Base::cal_M_RGBL2XYZ_base() {
-    Mat XYZr,  XYZg, XYZb;
-    XYZr = Mat(xyY2XYZ(this->xr, this->yr), true);
-    XYZg = Mat(xyY2XYZ(this->xg, this->yg), true);
-    XYZb = Mat(xyY2XYZ(this->xb, this->yb), true);
-   
-   // map <IO, vector<double>> illuminants = get_illuminant();
-    Mat XYZw = Mat(illuminants[io_base],true); 
+    Mat XYZr = Mat(xyY2XYZ(xr, yr)), XYZg = Mat(xyY2XYZ(xg, yg)), XYZb = Mat(xyY2XYZ(xb, yb));
+    map <IO, vector<double>> illuminants = get_illuminant();
+    Mat XYZw = Mat(illuminants[io_base]);
     Mat XYZ_rgbl;
     XYZ_rgbl.push_back(XYZr);
     XYZ_rgbl.push_back(XYZg);
-    
     XYZ_rgbl.push_back(XYZb);
-    XYZ_rgbl = XYZ_rgbl.reshape(0, 3);
-    //XYZ_rgbl = XYZ_rgbl.reshape(1, 3);
     XYZ_rgbl = XYZ_rgbl.t();
-   
     Mat S = XYZ_rgbl.inv() * XYZw;
-    // cout << S.type()<<endl;
-    
- 
-    Mat Sr = S.rowRange(0, 1);
-    Mat Sg = S.rowRange(1, 2);
-    Mat Sb = S.rowRange(2, 3);
-    /*Mat sChannels[3];
-    split(S, sChannels);
-
-    Mat Sr = sChannels[0];
-    Mat Sg = sChannels[1];
-    Mat Sb = sChannels[2];*/
-
-   
-    _M_RGBL2XYZ_base.push_back(Sr * (XYZr.t()));
-    _M_RGBL2XYZ_base.push_back(Sg * (XYZg.t()));
-    _M_RGBL2XYZ_base.push_back(Sb * (XYZb.t()));
-    _M_RGBL2XYZ_base=_M_RGBL2XYZ_base.t();
+    Mat Sr = S.rowRange(0, 1).clone();
+    Mat Sg = S.rowRange(1, 2).clone();
+    Mat Sb = S.rowRange(2, 3).clone();
+    _M_RGBL2XYZ_base.push_back(Sr * XYZr);
+    _M_RGBL2XYZ_base.push_back(Sg * XYZg);
+    _M_RGBL2XYZ_base.push_back(Sb * XYZb);
+    _M_RGBL2XYZ_base.t();
     return _M_RGBL2XYZ_base;
 }
 
 Mat RGB_Base::M_RGBL2XYZ_base() {
-    if (!_M_RGBL2XYZ_base.empty()) {
+    if (_M_RGBL2XYZ_base.empty()) {
         return _M_RGBL2XYZ_base;
     }
-   
     return cal_M_RGBL2XYZ_base();
 }
 
 IO RGB_Base::choose_io(IO io) {
-    
     if (io.m_illuminant.length() != 0) {
         return io;
     }
@@ -76,17 +53,12 @@ void RGB_Base::set_default(IO io) {
     _default_io = io;
 }
 
-Mat RGB_Base::M_RGBL2XYZ(IO io, bool rev ) {
+Mat RGB_Base::M_RGBL2XYZ(IO io, bool rev = false) {
     io = choose_io(io);
-   
-    if (_M_RGBL2XYZ.count(io)==1) {
-       // cout << "*******_M_RGBL2XYZ[io]" << _M_RGBL2XYZ[io][0] << endl;
-       // cout << "*******_M_RGBL2XYZ[io]" << _M_RGBL2XYZ[io][1] << endl;
+    if (_M_RGBL2XYZ[io].begin() == _M_RGBL2XYZ[io].end()) {
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
-         }
- 
-    if (io.m_illuminant == io_base.m_illuminant && io.m_observer == io_base.m_observer) {//io.equal(io_base)  io==io_baseÖØÔØ==
-        
+    }
+    if (io.m_illuminant < io_base.m_illuminant || io.m_illuminant == io_base.m_illuminant) {
         _M_RGBL2XYZ[io] = { M_RGBL2XYZ_base(), M_RGBL2XYZ_base().inv() };
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
@@ -97,27 +69,12 @@ Mat RGB_Base::M_RGBL2XYZ(IO io, bool rev ) {
 
 Mat RGB_Base::rgbl2xyz(Mat rgbl, IO io) {
     io = choose_io(io);
-    Mat _rgbl2xyz(rgbl.size(), rgbl.type());
-    _rgbl2xyz = mult(rgbl,M_RGBL2XYZ(io).t());
-    /*for (int i = 0; i < rgbl.rows; i++) {      
-        for (int j = 0; j < rgbl.cols; j++) {
-            for (int m = 0; m < 3; m++) {
-                double res1 = rgbl.at<Vec3d>(i, j)[0] * M_RGBL2XYZ(io).at<double>(m, 0);
-                double res2 = rgbl.at<Vec3d>(i, j)[1] * M_RGBL2XYZ(io).at<double>(m, 1);
-                double res3 = rgbl.at<Vec3d>(i, j)[2] * M_RGBL2XYZ(io).at<double>(m, 2);
-                _rgbl2xyz.at<Vec3d>(i, j)[m] = res1 + res2 + res3;
-            }
-
-        }
-    }*/
-   
-    return _rgbl2xyz;
+    return rgbl * (M_RGBL2XYZ(io).t());
 }
 
 Mat RGB_Base::xyz2rgbl(Mat xyz, IO io) {
     io = choose_io(io);
-    return  mult(xyz, M_RGBL2XYZ(io, true).t());
-   
+    return xyz * (M_RGBL2XYZ(io, true).t());
 }
 
 Mat RGB_Base::rgb2rgbl(Mat rgb) {
@@ -125,7 +82,6 @@ Mat RGB_Base::rgb2rgbl(Mat rgb) {
 }
 
 Mat RGB_Base::rgbl2rgb(Mat rgbl) {
-
     return gamma_correction(rgbl, 1 / gamma);
 }
 
@@ -149,7 +105,21 @@ Mat RGB_Base::rgb2lab(Mat rgb, IO io) {
     return rgbl2lab(rgb2rgbl(rgb), io);
 }
 
-double sRGB_Base::K0() {
+sRGB_Base::sRGB_Base(void) {
+    xr = 0.6400;
+    yr = 0.3300;
+    xg = 0.3000;
+    yg = 0.6000;
+    xb = 0.1500;
+    yb = 0.0600;
+    alpha = 1.055;
+    beta = 0.0031308;
+    phi = 12.92;
+    gamma = 2.4;
+}
+
+
+float sRGB_Base::K0() {
     if (_K0) {
         return _K0;
     }
@@ -157,7 +127,7 @@ double sRGB_Base::K0() {
 }
 
 
-double  sRGB_Base::_rgb2rgbl_ele(double x) {
+float  sRGB_Base::_rgb2rgbl_ele(float x) {
     if (x > K0()) {
         return pow(((x + alpha - 1) / alpha), gamma);
     }
@@ -179,42 +149,50 @@ Mat  sRGB_Base::rgb2rgbl(Mat rgb) {
     int nc = rgb.channels();
     for (int row = 0; row < height; row++) {
         for (int col = 0; col < width; col++) {
-           
-            for (int nc_ = 0; nc_ < nc; nc_++)
-                rgb.at<Vec3d>(row, col)[nc_] = _rgb2rgbl_ele(rgb.at<Vec3d>(row, col)[nc_]);
+            if (nc == 1) {
+                rgb.at<float>(row, col) = _rgb2rgbl_ele(rgb.at<float>(row, col));
+            }
+            else if (nc == 3) {
+                for (int nc_ = 0; nc_ < nc; nc_++)
+                    rgb.at<Vec3b>(row, col)[nc_] = _rgb2rgbl_ele(rgb.at<Vec3b>(row, col)[nc_]);
+            }
         }
     }
     return rgb;
 }
 
 
-double  sRGB_Base::_rgbl2rgb_ele(double x) {
+float  sRGB_Base::_rgbl2rgb_ele(float x) {
     if (x > beta) {
-        return alpha*pow(x ,1/ gamma)-(alpha-1);
+        return pow(((x + alpha - 1) / alpha), gamma);
     }
     else if (x >= -beta) {
         return x * phi;
     }
 
     else {
-        return -(alpha * pow(-x, 1 / gamma) - (alpha - 1));
+        return -(pow(((-x + alpha - 1) / alpha), gamma));
     }
 
 }
 
 
 Mat  sRGB_Base::rgbl2rgb(Mat rgbl) {
-    Mat rgbl2rgbres(rgbl.size(), rgbl.type());
     int height = rgbl.rows;
     int width = rgbl.cols;
     int nc = rgbl.channels();
     for (int row = 0; row < height; row++) {
         for (int col = 0; col < width; col++) {
-            for (int nc_ = 0; nc_ < nc; nc_++)
-                rgbl2rgbres.at<Vec3d>(row, col)[nc_] = _rgbl2rgb_ele(rgbl.at<Vec3d>(row, col)[nc_]);
+            if (nc == 1) {
+                rgbl.at<float>(row, col) = _rgbl2rgb_ele(rgbl.at<float>(row, col));
+            }
+            else if (nc == 3) {
+                for (int nc_ = 0; nc_ < nc; nc_++)
+                    rgbl.at<Vec3b>(row, col)[nc_] = _rgbl2rgb_ele(rgbl.at<Vec3b>(row, col)[nc_]);
+            }
         }
     }
-    return rgbl2rgbres;
+    return rgbl;
 }
 
 
@@ -252,3 +230,4 @@ RGB_Base* get_colorspace(string colorspace) {
     }
     return p;
 }
+

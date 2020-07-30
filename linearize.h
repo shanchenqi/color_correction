@@ -19,7 +19,6 @@ public:
     Mat poly1d(Mat src, Mat w, int deg);
     Mat _polyfit(Mat src, Mat dst, int deg);
     Mat _lin(Mat p, Mat x, int deg);
-  //  Mat mask_copyto(Mat src, Mat mask);
 
 };
 
@@ -34,7 +33,7 @@ public:
 class Linear_gamma : public Linear
 {
 public:
-    double gamma;
+    float gamma;
     Linear_gamma() {};
     Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     Mat linearize(Mat inp);
@@ -45,11 +44,10 @@ class Linear_color_polyfit : public Linear
 {
 public:
     int deg;
-    Mat mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat pr, pg, pb;
-    
     Linear_color_polyfit() {};
     Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
@@ -62,7 +60,7 @@ class Linear_color_logpolyfit : public Linear
 {
 public:
     int deg;
-    Mat mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat pr, pg, pb;
@@ -70,8 +68,8 @@ public:
     Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
-   // Mat _polyfit(Mat src, Mat dst, int deg);
-   // Mat _lin(Mat p, Mat x);
+    Mat _polyfit(Mat src, Mat dst, int deg);
+    Mat _lin(Mat p, Mat x);
 };
 
 
@@ -79,7 +77,7 @@ class Linear_gray_polyfit : public Linear
 {
 public:
     int deg;
-    Mat mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat p;
@@ -94,7 +92,7 @@ class Linear_gray_logpolyfit : public Linear
 {
 public:
     int deg;
-    Mat mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat p;
@@ -102,11 +100,35 @@ public:
     Linear_gray_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
-   // Mat _polyfit(Mat src, Mat dst, int deg);
-   // Mat _lin(Mat p, Mat x);
+    Mat _polyfit(Mat src, Mat dst, int deg);
+    Mat _lin(Mat p, Mat x);
 };
 
 
-Linear* get_linear(string linear, double gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
-Mat mask_copyto(Mat src, Mat mask);
+
+Linear* get_linear(string linear) {
+    Linear* p = new Linear;
+    if (linear == "Linear") {
+        p = new Linear;
+    }
+    else if (linear == "Linear_identity") {
+        p = new Linear_identity;
+    }
+    else if (linear == "Linear_gamma") {
+        p = new Linear_gamma;
+    }
+    else if (linear == "Linear_color_polyfit") {
+        p = new Linear_color_polyfit;
+    }
+    else if (linear == "Linear_color_logpolyfit") {
+        p = new Linear_color_logpolyfit;
+    }
+    else if (linear == "Linear_gray_polyfit") {
+        p = new Linear_gray_polyfit;
+    }
+    else if (linear == "Linear_gray_logpolyfit") {
+        p = new Linear_gray_logpolyfit;
+    }
+    return p;
+}
 #endif

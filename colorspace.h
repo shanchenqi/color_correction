@@ -2,10 +2,10 @@
 #define COLORSPACE_H
 
 #include "utils.h"
-#include "IO.h"
 
-//using namespace std;
-//using namespace cv;
+using namespace std;
+using namespace cv;
+
 class RGB_Base
 {
 public:
@@ -15,12 +15,8 @@ public:
     double yg;
     double xb;
     double yb;
-    double alpha;
-    double beta;
-    double phi;
-    double _K0;
     IO io_base;
-    double gamma;
+    float gamma;
     Mat _M_RGBL2XYZ_base;
     map<IO, vector<Mat>> _M_RGBL2XYZ;
     IO _default_io;
@@ -31,7 +27,7 @@ public:
     virtual Mat M_RGBL2XYZ_base();
     virtual IO choose_io(IO io);
     virtual void set_default(IO io);
-    virtual Mat M_RGBL2XYZ(IO io, bool rev = false);
+    virtual Mat M_RGBL2XYZ(IO io, bool rev);
     virtual Mat rgbl2xyz(Mat rgbl, IO io);
     virtual Mat xyz2rgbl(Mat xyz, IO io);
     virtual Mat rgb2rgbl(Mat rgb);
@@ -46,32 +42,34 @@ public:
 class sRGB_Base : public RGB_Base
 {
 public:
-    sRGB_Base() : RGB_Base() {
-        xr = 0.6400;
-        yr = 0.3300;
-        xg = 0.3000;
-        yg = 0.6000;
-        xb = 0.1500;
-        yb = 0.0600;
-        alpha = 1.055;
-        beta = 0.0031308;
-        phi = 12.92;
-        gamma = 2.4;
-    }
+    float xr;
+    float yr;
+    float xg;
+    float yg;
+    float xb;
+    float yb;
+    float alpha;
+    float beta;
+    float phi;
+    float gamma;
+    float _K0;
 
-    double K0();
-    double _rgb2rgbl_ele(double x);
+    sRGB_Base();
+
+    float K0();
+    float _rgb2rgbl_ele(float x);
     Mat rgb2rgbl(Mat rgb);
-    double _rgbl2rgb_ele(double x);
+    float _rgbl2rgb_ele(float x);
     Mat rgbl2rgb(Mat rgbl);
 };
+
 
 class sRGB : public sRGB_Base
 {
 public:
-   // Mat _M_RGBL2XYZ_base;
+    Mat _M_RGBL2XYZ_base;
     sRGB() : sRGB_Base() {
-        _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
+        Mat _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
             0.41239080, 0.35758434, 0.18048079,
             0.21263901, 0.71516868, 0.07219232,
             0.01933082, 0.11919478, 0.95053215);
@@ -175,5 +173,6 @@ public:
 
 
 RGB_Base* get_colorspace(string colorspace);
+
 
 #endif
