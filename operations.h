@@ -15,7 +15,8 @@ public:
 	cv::Mat M;
 	MatFunc f;
 	Operation() : linear(true), M(Mat()) {};
-	Operation(Mat M) :linear(true), M{ M } {};
+	//Operation(Mat M) :linear(true), M{ M } {};
+	Operation(Mat M) :linear(true), M( M ) {};
 	Operation(MatFunc f) : linear(false), f(f) {};
 	Mat operator()(Mat& abc) {
 		if (!linear) { return f(abc); }
@@ -24,7 +25,7 @@ public:
 	};
 	void add(Operation& other) {
 		if (M.empty()) {
-			M = other.M;
+			M = other.M.clone();
 		}
 		else {
 			M = M * other.M;
