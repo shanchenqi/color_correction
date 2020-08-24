@@ -27,7 +27,6 @@ namespace cv {
 				}
 				Operations ops;
 				ops.add(cs.to).add(XYZ(cs.io).cam(other.io, method)).add(other.from);
-				std::cout << ops.ops.size() << std::endl;
 				Color color(ops.run(colors), other);
 				//if (save) {
 				//	_history[other] = &color;
@@ -90,6 +89,9 @@ namespace cv {
 
 			Color operator[](Mat mask) {
 				return Color(mask_copyto(colors, mask), cs);
+			}
+			Color operator=(Color inp) {
+				return inp;
 			}
 		};
 
