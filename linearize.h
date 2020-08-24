@@ -122,10 +122,14 @@ namespace cv {
             //Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
             Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs) :deg(deg) {
                 dst.get_gray();
-                mask = mask & dst.grays;
+                //mask = mask & dst.grays;
+                Mat Lear_gray_mask= mask & dst.grays;
+               
                 // the grayscale function is approximate for src is in relative color space;
-                src = rgb2gray(mask_copyto(src, mask));
-                cv::Mat dst_ = mask_copyto(dst.toGray(cs.io), mask);
+               // src = rgb2gray(mask_copyto(src, mask));
+                src = rgb2gray(mask_copyto(src, Lear_gray_mask));
+                //cv::Mat dst_ = mask_copyto(dst.toGray(cs.io), mask);
+                cv::Mat dst_ = mask_copyto(dst.toGray(cs.io), Lear_gray_mask);
                 calc(src, dst_);
             }
             // monotonically increase is not guaranteed

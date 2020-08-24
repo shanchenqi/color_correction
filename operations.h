@@ -61,6 +61,7 @@ public:
 			}
 		}
 		abc = hd(abc);
+		hd.clear();
 		return abc;
 	};
 };
