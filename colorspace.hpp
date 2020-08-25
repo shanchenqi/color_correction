@@ -1,8 +1,8 @@
-#pragma once
+#ifndef ColorSpace_H
+#define ColorSpace_H
 //#include "utils.h"
-#include "io.h"
-#include "operations.h"
-#include "utils.h"
+#include "io.hpp"
+#include "operations.hpp"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -127,8 +127,8 @@ namespace cv {
 
 			virtual void _cal_linear() {}
 
-			virtual Mat _toL(Mat rgb) { return Mat(); };
-			virtual Mat _fromL(Mat rgbl) { return Mat(); };
+			virtual Mat _toL(Mat rgb) { return rgb; };
+			virtual Mat _fromL(Mat rgbl) { return rgbl ; };
 
 		    void bind(RGB_Base_& rgbl) {
 				init();
@@ -577,3 +577,5 @@ namespace cv {
 
 	}
 }
+
+#endif

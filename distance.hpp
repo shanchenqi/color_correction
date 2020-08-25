@@ -1,8 +1,9 @@
-#pragma once
+#ifndef Distance_H
+#define Distance_H
 //#include <string>
 //#include <iostream>
 #include <opencv2/opencv.hpp>
-#include "utils.h"
+#include "utils.hpp"
 //#include <map>
 //#include <tuple>
 //#include <cmath>
@@ -228,4 +229,4 @@ namespace cv {
 //double deltacE_ciede94(const LAB& lab1, const LAB& lab2, double kH, double kC, double kL, double k1, double);
 
 //double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL, double kC, double kH);
-
+#endif

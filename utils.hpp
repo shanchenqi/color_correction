@@ -1,9 +1,10 @@
-#pragma once
+#ifndef Utils_H
+#define Utils_H
 #include <functional>
 #include <vector>
-#include "opencv2\core\core.hpp"
 #include <string>
 #include <iostream>
+#include "io.hpp"
 
 namespace cv {
     namespace ccm {
@@ -156,3 +157,5 @@ namespace cv {
 
     }
 }
+
+#endif

@@ -1,8 +1,8 @@
 #pragma once
-//#ifndef LINEARIZE_H
-//#define LINEARIZE_H
+#ifndef LINEARIZE_H
+#define LINEARIZE_H
 
-#include "color.h"
+#include "color.hpp"
 
 namespace cv {
     namespace ccm {
@@ -166,7 +166,7 @@ namespace cv {
                 cv::Mat dChannels[3];
                 split(src, sChannels);
                 split(dst, dChannels);
-                std::cout << "sChannels[0]" << sChannels[0] << std::endl;
+               
                 pr = T(sChannels[0], dChannels[0], deg);
                 pg = T(sChannels[1], dChannels[1], deg);
                 pb = T(sChannels[2], dChannels[2], deg);
@@ -219,4 +219,4 @@ namespace cv {
     }
 }
 
-//#endif
+#endif

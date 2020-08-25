@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IO_H
+#define IO_H
 
 #include <string>
 #include <iostream>
@@ -59,5 +60,5 @@ std::map<IO, std::vector<double> >  illuminants = get_illuminant();
 }
 }
 
-
+#endif
 
