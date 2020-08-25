@@ -1,8 +1,7 @@
-#pragma once
-#pragma once
-#include "colorspace.h"
-#include "distance.h"
-#include "utils.h"
+#ifndef Color_H
+#define Color_H
+#include "colorspace.hpp"
+#include "distance.hpp"
 #include <map>
 
 namespace cv {
@@ -14,24 +13,27 @@ namespace cv {
 			ColorSpace& cs;
 			Mat grays;
 			Mat colored;
-			std::map<ColorSpace, Color*> _history;
-
+			
+			
 			Color(Mat colors, ColorSpace& cs) :colors(colors), cs(cs) {};
-
+			std::map<ColorSpace, Color*> _history;
 			Color to(ColorSpace& other, CAM method = BRADFORD, bool save = true) {
-				/*	if (_history.count(other) == 1) {
+					if (_history.count(other) == 1) {
+						/*	Color* p;
+						p = _history[other];
+						return *p;*/
 						return *_history[other];
-					}*/
+					}
 				if (cs.relate(other)) {
 					return Color(cs.relation(other).run(colors), other);
 				}
 				Operations ops;
 				ops.add(cs.to).add(XYZ(cs.io).cam(other.io, method)).add(other.from);
-				Color color(ops.run(colors), other);
-				//if (save) {
-				//	_history[other] = &color;
-				//}
-				return color;
+				Color *color =new Color(ops.run(colors), other);
+				if (save) {
+					_history[other] = color;
+				}
+				return *color;
 			}
 
 			Mat channel(Mat M, int i) {
@@ -154,3 +156,4 @@ namespace cv {
 }
 
 
+#endif
